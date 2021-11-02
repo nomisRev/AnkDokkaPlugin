@@ -1,6 +1,7 @@
 package com.github.nomisrev.ank
 
 import arrow.fx.coroutines.parTraverse
+import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.dokka.base.DokkaBase
@@ -26,9 +27,12 @@ private class AnkCompiler(private val ctx: DokkaContext) : PreMergeDocumentableT
   override fun invoke(modules: List<DModule>): List<DModule> = runBlocking(Dispatchers.Default) {
     ctx.logger.warn(colored(ANSI_PURPLE, "Λnk Dokka Plugin is running"))
 
+    val urls: List<URL> = ctx.configuration.pluginsClasspath.map { it.toURI().toURL() } +
+            ctx.configuration.sourceSets.flatMap { it.classpath.map { it.toURI().toURL() } }
+
     modules.parTraverse { module ->
       Engine.engine(
-        module.classPath().also {
+        urls.distinct().also {
           ctx.logger.error(colored(ANSI_RED, "Going to print classpath:"))
           ctx.logger.error(colored(ANSI_RED, it.joinToString(separator = "\n")))
         },

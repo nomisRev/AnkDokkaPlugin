@@ -1,4 +1,14 @@
+package sample
 
+/**
+ * This class is documented, and Ank will check that it complies
+ *
+ * ```kotlin:ank
+ * import sample.Person
+ *
+ * Person(21, "Javi")
+ * ```
+ */
 data class Person(val age: Int, val name: String)
 
 /**

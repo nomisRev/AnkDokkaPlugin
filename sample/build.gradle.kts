@@ -1,5 +1,6 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 import java.net.URL
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
     kotlin("multiplatform")
@@ -36,14 +37,18 @@ kotlin {
     }
 }
 
+val ank: Configuration by configurations.creating
+
 dependencies {
-    dokkaHtmlPlugin("com.nomisrev:ank-dokka-plugin:1.1-SNAPSHOT")
+    dokkaHtmlPlugin(project(":"))
+    ank(project(":sample"))
 }
 
 tasks.withType<DokkaTask>().configureEach {
-//    dependsOn("jar") // Build jar to include into Dokka's classpath
+    dependsOn("build")
     dokkaSourceSets {
         named("commonMain") {
+            classpath.from(ank.files.first())
             moduleName.set("Dokka Gradle Example")
             sourceLink {
                 localDirectory.set(file("src/commonMain/kotlin"))
