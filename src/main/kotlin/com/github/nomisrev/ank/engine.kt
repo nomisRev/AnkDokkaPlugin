@@ -13,6 +13,7 @@ import java.nio.file.StandardCopyOption.*
 import javax.script.ScriptContext
 import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
+import org.jetbrains.dokka.utilities.DokkaLogger
 import org.jetbrains.kotlin.utils.ifEmpty
 
 /**
@@ -44,8 +45,8 @@ object Engine {
   private val enviroment = TestEnviroment()
   fun testReport(): String? = enviroment.testReport()
 
-  // We need to communicate between two different classspaths, so we don't share types
-// Use String text to communicate beteween processes
+  // We need to communicate between two different classpaths, so we don't share types
+  // Use String text to communicate between processes
   private val seperator = "@@@@@@@@@@@@@@@@@@@@@@@"
 
   fun String.decode(): List<TestResult> =
@@ -65,9 +66,9 @@ object Engine {
    * otherwise you can programmatically access the ClassPath or load/pass it during build time.
    * Gradle knows the classpath, and can pass it as an argument to the program.
    */
-  fun engine(classpath: List<URL>): Resource<ScriptEngine> =
+  fun engine(classpath: List<URL>, logger: DokkaLogger): Resource<ScriptEngine> =
     (resource {
-      val classLoader = classLoader(classpath)
+      val classLoader = classLoader(classpath, logger)
 
       // We need to get the original contextClassLoader which Dokka uses to run, and store it
       // Then we need to set the contextClassloader so the engine can correctly define the compilation classpath
@@ -93,11 +94,29 @@ object Engine {
    * This [URLClassLoader] has references to all the dependencies it needs to run [ScriptEngine],
    * and it holds all the user desired dependencies so we can evaluate code with user dependencies.
    */
-  private fun classLoader(compilerArgs: List<URL>): URLClassLoader? =
+  private fun classLoader(userClasspath: List<URL>, logger: DokkaLogger): URLClassLoader? =
     URLClassLoader(
-      (jss233Classpath + compilerArgs).toTypedArray(),
-      null // Decouple from parent ClassLoader
+      (jss233Classpath + userClasspath).toTypedArray(),
+      getParentClassLoader(logger)?.also { cls ->
+        val list = cls?.unnamedModule?.packages.orEmpty().joinToString("\n")
+        logger.warn(list)
+      }
     )
+
+  // logger.warn(originalClassLoader.parent.toString())
+  private fun getParentClassLoader(logger: DokkaLogger): ClassLoader? {
+    val version = System.getProperty("java.specification.version")?.toDoubleOrNull()
+    return if (version != null && version > 1.8) {
+      try {
+        ClassLoader::class.java.getMethod("getPlatformClassLoader").invoke(null) as? ClassLoader
+      } catch (e: Exception) {
+        logger.error(e.toString())
+        null
+      }
+    } else {
+      null
+    }
+  }
 
   private val testPrelude: String = """
       | import kotlinx.coroutines.runBlocking

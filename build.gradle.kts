@@ -3,8 +3,8 @@ import java.net.URI
 import java.io.ByteArrayOutputStream
 
 plugins {
-    kotlin("jvm") version "1.5.0"
-    id("org.jetbrains.dokka") version "1.5.0"
+    kotlin("jvm") version "1.5.31"
+    id("org.jetbrains.dokka") version "1.5.31"
     `maven-publish`
     signing
     base
@@ -18,22 +18,22 @@ repositories {
     jcenter()
 }
 
-val dokkaVersion: String = "1.5.0"
+val dokkaVersion: String = "1.5.31"
 configurations { create("toCopy") }
 
 dependencies {
     compileOnly("org.jetbrains.dokka:dokka-core:$dokkaVersion")
     implementation("org.jetbrains.dokka:dokka-base:$dokkaVersion")
 
-    implementation("io.arrow-kt:arrow-core:0.13.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
-    implementation("io.arrow-kt:arrow-fx-coroutines:0.13.2")
+    implementation("io.arrow-kt:arrow-core:1.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+    implementation("io.arrow-kt:arrow-fx-coroutines:1.0.0")
 
     testImplementation(kotlin("test-junit"))
     testImplementation("org.jetbrains.dokka:dokka-test-api:$dokkaVersion")
     testImplementation("org.jetbrains.dokka:dokka-base-test-utils:$dokkaVersion")
 
-    "toCopy"("org.jetbrains.kotlin:kotlin-scripting-jsr223-unshaded:1.5.21")
+    "toCopy"("org.jetbrains.kotlin:kotlin-scripting-jsr223-unshaded:1.5.31")
 }
 
 val dokkaOutputDir = "$buildDir/dokka"
